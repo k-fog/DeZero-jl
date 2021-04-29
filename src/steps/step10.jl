@@ -1,4 +1,5 @@
-# step09
+# step10
+using Test
 
 abstract type Func end
 
@@ -78,4 +79,28 @@ y = square(exp(square(x)))
 backward!(y)
 println(x.grad)
 
-Variable(nothing)
+
+# test
+function allclose(a, b; rtol=1e-5, atol=1e-8)
+    return all(@. abs(a - b) <= (atol + rtol * abs(b)))
+end
+
+@testset "SquareTest" begin
+    @testset "forward" begin
+        x = Variable([2.0])
+        y = square(x)
+        @test y.data == [4.0]
+    end
+    @testset "backward" begin
+        function test_grad_check()
+            x = Variable(rand(1))
+            y = square(x)
+            backward!(y)
+            num_grad = numericaldiff(square, x)
+            @test allclose(x.grad, num_grad)
+        end
+        for i in 1:10
+            test_grad_check()
+        end
+    end
+end
