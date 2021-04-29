@@ -12,11 +12,15 @@ end
 setcreator!(v::Variable, func::Func) = v.creator = func
 
 function backward!(v::Variable)
-    if isdefined(v, :creator)
-        f = v.creator
-        x = f.input
-        x.grad = backward(f, v.grad)
-        backward!(x)
+    funcs = Vector{Func}(undef, 1)
+    funcs[1] = v.creator
+    while !isempty(funcs)
+        f = pop!(funcs)
+        x, y = f.input, f.output
+        x.grad = backward(f, y.grad)
+        if isdefined(x, :creator)
+            push!(funcs, x.creator)
+        end
     end
 end
 
