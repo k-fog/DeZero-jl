@@ -41,7 +41,6 @@ function (f::Func)(input::Variable)
 end
 
 # square
-
 mutable struct Square <: Func
     input::Variable
     output::Variable
