@@ -2,3 +2,9 @@ name = "DeZero"
 uuid = "c0fd42e3-7e80-4e51-98e7-95fec8e79afe"
 authors = ["k-fog <59814110+k-fog@users.noreply.github.com>"]
 version = "0.1.0"
+
+[deps]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test]
