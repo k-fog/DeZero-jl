@@ -7,3 +7,4 @@
 - step02 : `Func`の構造を本と違ったものにした。
 - step09 : `Func`の実装方法を変更。本の実装に戻す。
 - step11 : `FuncBase`を追加。
+- step22 : `FuncBase`を削除。`Func`生成をマクロ化。
