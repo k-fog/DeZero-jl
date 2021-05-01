@@ -1,6 +1,6 @@
 abstract type Func end
 
-mutable struct Variable{T <: Number}
+mutable struct Variable{T <: Real}
     data::Array{T}
     grad::Union{Array{T},Nothing}
     name::Union{String,Nothing}
