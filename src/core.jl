@@ -24,6 +24,7 @@ function Base.show(io::IO, ::MIME"text/plain", v::Variable{T}) where {T}
     println(io, "Variable{$T}\n", v.data)
 end
 
+isdatadefined(v::Variable) = isdefined(v, :data)
 isgraddefined(v::Variable) = isdefined(v, :grad) && !isnothing(v.grad)
 
 cleargrad(v::Variable) = (v.grad = nothing)
