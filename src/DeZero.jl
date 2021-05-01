@@ -16,12 +16,12 @@ export
     create_func,
     forward,
     backward,
-    add,
-    mul,
-    neg,
-    sub,
-    div,
-    pow
+    add, +,
+    mul, *,
+    neg, -,
+    sub, -,
+    div, /,
+    pow, ^
 
 
 include("config.jl")

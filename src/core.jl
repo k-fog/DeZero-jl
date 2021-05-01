@@ -101,6 +101,7 @@ end
 forward(f::Add, x1, x2) = x1 + x2
 backward(f::Add, gy) = gy, gy
 add(x1, x2) = Add()(x1, x2)
+Base.:+(x::Variable, y::Variable) = add(x, y)
 Base.:+(x::Variable, y) = add(x, y)
 Base.:+(x, y::Variable) = add(x, y)
 
@@ -109,6 +110,7 @@ Base.:+(x, y::Variable) = add(x, y)
 forward(f::Mul, x1, x2) = x1 .* x2
 backward(f::Mul, gy) = (gy .* f.inputs[2].data, gy .* f.inputs[1].data)
 mul(x1, x2) = Mul()(x1, x2)
+Base.:*(x::Variable, y::Variable) = mul(x, y)
 Base.:*(x::Variable, y) = mul(x, y)
 Base.:*(x, y::Variable) = mul(x, y)
 
@@ -124,6 +126,7 @@ Base.:-(x::Variable) = neg(x)
 forward(f::Sub, x1, x2) = x1 .- x2
 backward(f::Sub, gy) = (gy, -gy)
 sub(x1, x2) = Sub()(x1, x2)
+Base.:-(x::Variable, y::Variable) = sub(x, y)
 Base.:-(x::Variable, y) = sub(x, y)
 Base.:-(x, y::Variable) = sub(x, y)
 
@@ -137,12 +140,13 @@ backward(f::Div, gy) = begin
     return gx1, gx2
 end
 div(x1, x2) = Div()(x1, x2)
+Base.:/(x::Variable, y::Variable) = div(x, y)
 Base.:/(x::Variable, y) = div(x, y)
 Base.:/(x, y::Variable) = div(x, y)
 
 # Pow
 @create_func Pow c
 forward(f::Pow, x) = x .^ f.c
-backward(f::Pow, gy) = @. f.c * f.inputs[0].data ^ (f.c - 1) * gy
+backward(f::Pow, gy) = @. f.c * f.inputs[1].data ^ (f.c - 1) * gy
 pow(x, c) = Pow(c)(x)
 Base.:^(x::Variable, c) = pow(x, c)
