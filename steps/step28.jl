@@ -14,8 +14,8 @@ function main()
     for i in 1:iters
         println(x1.data, x2.data)
         y = rosenbrock(x1, x2)
-        cleargrad(x1)
-        cleargrad(x2)
+        cleargrad!(x1)
+        cleargrad!(x2)
         backward!(y)
         x1.data -= lr * x1.grad
         x2.data -= lr * x2.grad

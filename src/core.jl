@@ -27,7 +27,7 @@ end
 isdatadefined(v::Variable) = isdefined(v, :data)
 isgraddefined(v::Variable) = isdefined(v, :grad) && !isnothing(v.grad)
 
-cleargrad(v::Variable) = (v.grad = nothing)
+cleargrad!(v::Variable) = (v.grad = nothing)
 
 asVariable(obj) = isa(obj, Variable) ? obj : Variable(collect(obj))
 

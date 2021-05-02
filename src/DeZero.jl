@@ -8,7 +8,7 @@ export
     Func,
     Variable,
     isgraddefined,
-    cleargrad,
+    cleargrad!,
     asVariable,
     setcreator!,
     backward!,
