@@ -1,14 +1,14 @@
 abstract type Func end
 
-mutable struct Variable{T <: Real}
-    data::Array{T}
-    grad::Union{Array{T},Nothing}
+mutable struct Variable{F <: Func}
+    data::Array
+    creator::F
+    grad::Union{Array,Nothing}
     name::Union{String,Nothing}
-    creator::Func
     generation::Int
 
     function Variable(data::Array, name=nothing) 
-        v = new{Config.variable_type[]}(data)
+        v = new{Func}(data)
         v.name = name
         v.generation = 0
         return v
@@ -77,7 +77,7 @@ macro create_func(name, arg...)
         end
     end
 end
-
+    
 function (f::Func)(inputs...)
     inputs = [asVariable(x) for x in inputs]
     xs = [x.data for x in inputs]
@@ -94,7 +94,7 @@ function (f::Func)(inputs...)
     end
     f.inputs = collect(inputs)
     f.outputs = outputs
-    return length(outputs) > 1 ? outputs : outputs[1]
+return length(outputs) > 1 ? outputs : outputs[1]
 end
 
 # Add
@@ -137,8 +137,8 @@ forward(f::Div, x1, x2) = x1 ./ x2
 backward(f::Div, gy) = begin
     x1, x2 = f.inputs[1].data, f.inputs[2].data
     gx1 = gy ./ x2
-    gx2 = gy .* (-x1 ./ x2 ^ 2)
-    return gx1, gx2
+gx2 = gy .* (-x1 ./ x2^2)
+return gx1, gx2
 end
 div(x1, x2) = Div()(x1, x2)
 Base.:/(x::Variable, y::Variable) = div(x, y)
@@ -147,7 +147,7 @@ Base.:/(x, y::Variable) = div(x, y)
 
 # Pow
 @create_func Pow c
-forward(f::Pow, x) = x .^ f.c
-backward(f::Pow, gy) = @. f.c * f.inputs[1].data ^ (f.c - 1) * gy
+forward(f::Pow, x) = x.^f.c
+backward(f::Pow, gy) = @. f.c * f.inputs[1].data^(f.c - 1) * gy
 pow(x, c) = Pow(c)(x)
 Base.:^(x::Variable, c) = pow(x, c)
