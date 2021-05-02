@@ -2,8 +2,7 @@ module DeZero
 
 export
     # config
-    no_grad,
-    use_backprop,
+    Config,
 
     # core
     Func,
@@ -13,7 +12,7 @@ export
     asVariable,
     setcreator!,
     backward!,
-    create_func,
+    @create_func,
     forward,
     backward,
     add, +,

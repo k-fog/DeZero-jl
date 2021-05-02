@@ -1,14 +1,15 @@
 module Config
-    export use_backprop
-
     const enable_backprop = Ref(true)
-    use_backprop(flag::Bool) = (enable_backprop = flag)
+    use_backprop(flag::Bool) = (enable_backprop[] = flag)
+
+    const variable_type = Ref(Float64)
+    set_variable_type(t::Type) = (variable_type[] = t)
 end # module Config
 
 using .Config
 
 function no_grad(f::Function)
-    oldvalue = Config.enable_backprop[]
+    use_backprop(false)
     f()
-    Config.use_backprop(oldvalue)
+    use_backprop(true)
 end

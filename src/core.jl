@@ -8,7 +8,7 @@ mutable struct Variable{T <: Real}
     generation::Int
 
     function Variable(data::Array, name=nothing) 
-        v = new{eltype(data)}(data)
+        v = new{Config.variable_type[]}(data)
         v.name = name
         v.generation = 0
         return v
