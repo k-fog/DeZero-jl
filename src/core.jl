@@ -92,7 +92,7 @@ function (f::Func)(inputs...)
             setcreator!(output, f)
         end
     end
-    f.inputs = collect(inputs)
+    f.inputs = inputs
     f.outputs = outputs
 return length(outputs) > 1 ? outputs : outputs[1]
 end
