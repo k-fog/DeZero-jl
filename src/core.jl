@@ -7,7 +7,7 @@ mutable struct Variable{F <: Func}
     name::Union{String,Nothing}
     generation::Int
 
-    function Variable(data::Array, name=nothing) 
+    function Variable(data::AbstractArray, name=nothing) 
         v = new{Func}(data)
         v.name = name
         v.generation = 0
@@ -16,7 +16,6 @@ mutable struct Variable{F <: Func}
 end
 
 Base.size(v::Variable) = size(v.data)
-Base.reshape(v::Variable, dims) = reshape(v.data, dims)
 Base.length(v::Variable) = length(v.data)
 Base.eltype(v::Variable) = Variable
 Base.getindex(v::Variable, args...) = getindex(v.data, args...)
