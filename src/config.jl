@@ -5,8 +5,11 @@ end # module Config
 
 using .Config
 
-function no_grad(f::Function)
-    use_backprop(false)
+function using_grad(f::Function, use::Bool)
+    oldvalue = Config.enable_backprop[]
+    Config.use_backprop(use)
     f()
-    use_backprop(true)
+    Config.use_backprop(oldvalue)
 end
+
+nograd(f::Function) = using_grad(f, false)

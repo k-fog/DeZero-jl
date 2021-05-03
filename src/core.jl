@@ -3,7 +3,7 @@ abstract type Func end
 mutable struct Variable{F <: Func}
     data::Array
     creator::F
-    grad::Union{Array,Nothing}
+    grad::Union{Variable,Nothing}
     name::Union{String,Nothing}
     generation::Int
 
@@ -36,9 +36,9 @@ function setcreator!(v::Variable, func::Func)
     v.generation = func.generation + 1
 end
 
-function backward!(v::Variable; retain_grad=false)
+function backward!(v::Variable; retain_grad=false, create_graph=false)
     if !isgraddefined(v)
-        v.grad = ones(size(v.data))
+        v.grad = Variable(ones(size(v.data)))
     end
 
     funcs::Vector{Func} = []
@@ -54,14 +54,16 @@ function backward!(v::Variable; retain_grad=false)
     while !isempty(funcs)
         f = pop!(funcs)
         gys = [output.value.grad for output in f.outputs]
-        gxs = backward(f, gys...)
-        isa(gxs, Tuple) || (gxs = (gxs,))
 
-        for (x, gx) in zip(f.inputs, gxs)
-            x.grad = (isgraddefined(x) ? x.grad : 0) .+ gx
-            isdefined(x, :creator) && addfunc(x.creator)
+        using_grad(create_graph) do
+            gxs = backward(f, gys...)
+            isa(gxs, Tuple) || (gxs = (gxs,))
+
+            for (x, gx) in zip(f.inputs, gxs)
+                x.grad = (isgraddefined(x) ? x.grad : 0) + gx
+                isdefined(x, :creator) && addfunc(x.creator)
+            end
         end
-
         retain_grad || for y in f.outputs y.value.grad = nothing end
     end
 end
@@ -99,7 +101,7 @@ end
 
 # Add
 @create_func Add
-forward(f::Add, x1, x2) = x1 + x2
+forward(f::Add, x1, x2) = x1 .+ x2
 backward(f::Add, gy) = gy, gy
 add(x1, x2) = Add()(x1, x2)
 Base.:+(x::Variable, y::Variable) = add(x, y)
@@ -109,7 +111,7 @@ Base.:+(x, y::Variable) = add(x, y)
 # Mul
 @create_func Mul
 forward(f::Mul, x1, x2) = x1 .* x2
-backward(f::Mul, gy) = (gy .* f.inputs[2].data, gy .* f.inputs[1].data)
+backward(f::Mul, gy) = (gy * f.inputs[2], gy * f.inputs[1])
 mul(x1, x2) = Mul()(x1, x2)
 Base.:*(x::Variable, y::Variable) = mul(x, y)
 Base.:*(x::Variable, y) = mul(x, y)
@@ -135,9 +137,9 @@ Base.:-(x, y::Variable) = sub(x, y)
 @create_func Div
 forward(f::Div, x1, x2) = x1 ./ x2
 backward(f::Div, gy) = begin
-    x1, x2 = f.inputs[1].data, f.inputs[2].data
-    gx1 = gy ./ x2
-gx2 = gy .* (-x1 ./ x2^2)
+    x1, x2 = f.inputs
+    gx1 = gy / x2
+gx2 = gy * (-x1 / x2^2)
 return gx1, gx2
 end
 div(x1, x2) = Div()(x1, x2)
@@ -148,6 +150,6 @@ Base.:/(x, y::Variable) = div(x, y)
 # Pow
 @create_func Pow c
 forward(f::Pow, x) = x.^f.c
-backward(f::Pow, gy) = @. f.c * f.inputs[1].data^(f.c - 1) * gy
+backward(f::Pow, gy) = f.c * f.inputs[1]^(f.c - 1) * gy
 pow(x, c) = Pow(c)(x)
 Base.:^(x::Variable, c) = pow(x, c)

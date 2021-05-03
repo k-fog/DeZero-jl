@@ -15,12 +15,8 @@ export
     @create_func,
     forward,
     backward,
-    add, +,
-    mul, *,
-    neg, -,
-    sub, -,
-    div, /,
-    pow, ^,
+    +, *, -, /, ^,
+    sin, cos,
 
     # utils
     get_dot_graph,
@@ -29,6 +25,7 @@ export
 
 include("config.jl")
 include("core.jl")
+include("functions.jl")
 include("utils.jl")
 
 end # module DeZero
