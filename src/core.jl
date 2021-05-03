@@ -53,7 +53,7 @@ function backward!(v::Variable; retain_grad=false)
     addfunc(v.creator)
     while !isempty(funcs)
         f = pop!(funcs)
-        gys = [output.grad for output in f.outputs]
+        gys = [output.value.grad for output in f.outputs]
         gxs = backward(f, gys...)
         isa(gxs, Tuple) || (gxs = (gxs,))
 
@@ -62,7 +62,7 @@ function backward!(v::Variable; retain_grad=false)
             isdefined(x, :creator) && addfunc(x.creator)
         end
 
-        retain_grad || for y in f.outputs y.grad = nothing end
+        retain_grad || for y in f.outputs y.value.grad = nothing end
     end
 end
 
@@ -71,7 +71,7 @@ macro create_func(name, arg...)
         mutable struct $(esc(name)) <: Func
             $(arg...)
             inputs::Array{Variable}
-            outputs::Array{Variable}
+            outputs::Array{WeakRef}
             generation::Int
             $(esc(name))($(arg...)) = new($(arg...))
         end
@@ -93,7 +93,7 @@ function (f::Func)(inputs...)
         end
     end
     f.inputs = inputs
-    f.outputs = outputs
+    f.outputs = [WeakRef(output) for output in outputs]
 return length(outputs) > 1 ? outputs : outputs[1]
 end
 
