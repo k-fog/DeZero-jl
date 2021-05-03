@@ -60,7 +60,11 @@ function backward!(v::Variable; retain_grad=false, create_graph=false)
             isa(gxs, Tuple) || (gxs = (gxs,))
 
             for (x, gx) in zip(f.inputs, gxs)
-                x.grad = (isgraddefined(x) ? x.grad : 0) + gx
+                if isgraddefined(x)
+                    x.grad = x.grad + gx
+                else
+                    x.grad = gx
+                end
                 isdefined(x, :creator) && addfunc(x.creator)
             end
         end

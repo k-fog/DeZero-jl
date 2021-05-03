@@ -14,12 +14,12 @@ function _dot_func(f::Func)
         txt *= "$(objectid(x)) -> $(objectid(f))\n"
     end
     for y in f.outputs
-        txt *= "$(objectid(f)) -> $(objectid(y))\n"
+        txt *= "$(objectid(f)) -> $(objectid(y.value))\n"
     end
     return txt
 end
 
-function get_dot_graph(output, verbose=true)
+function get_dot_graph(output; verbose=true)
     txt = ""
     funcs::Vector{Func} = []
     seen_set = Set()
@@ -44,8 +44,8 @@ function get_dot_graph(output, verbose=true)
     return "digraph g {\n" * txt * "}"
 end
 
-function plot_dot_graph(output, verbose=true; file="graph.png")
-    dot_graph = get_dot_graph(output, verbose)
+function plot_dot_graph(output; verbose=false, file="graph.png")
+    dot_graph = get_dot_graph(output, verbose=verbose)
     graph_path = tempname() * ".dot"
     open(graph_path, "w") do f
         write(f, dot_graph)
