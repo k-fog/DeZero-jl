@@ -8,6 +8,7 @@
 - step09 : `Func`の実装方法を変更。本の実装に戻す。
 - step11 : `FuncBase`を追加。
 - step22 : `FuncBase`を削除。`Func`生成をマクロ化。
+- ./src/core.jlの大幅変更により、初期のstepのプログラムが動かないことに気づく。
 
 ## pictures
 <img src="./images/goldstein.png" width=300px>
