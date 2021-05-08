@@ -9,16 +9,22 @@ export
     Variable,
     isgraddefined,
     cleargrad!,
-    asVariable,
+    asvariable,
     setcreator!,
     backward!,
     @create_func,
     forward,
     backward,
-    +, *, -, /, ^,
+    add, +, 
+    mul, *, 
+    neg, sub, -,
+    div, /, 
+    pow, ^,
     sin, cos,
+    transpose, adjoint,
 
     # utils
+    numericalgrad,
     get_dot_graph,
     plot_dot_graph
 

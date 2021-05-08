@@ -1,17 +1,17 @@
 # Sin
-@create_func Sin
+@createfunc Sin
 forward(f::Sin, x) = sin.(x)
 backward(f::Sin, gy) = gy * cos(f.inputs[1])
 Base.sin(x::Variable) = Sin()(x)
 
 # Cos
-@create_func Cos
+@createfunc Cos
 forward(f::Cos, x) = cos.(x)
 backward(f::Cos, gy) = gy * -sin(f.inputs[1])
 Base.cos(x::Variable) = Cos()(x)
 
 # Tanh
-@create_func Tanh
+@createfunc Tanh
 forward(f::Tanh, x) = Base.tanh.(x)
 backward(f::Tanh, gy) = begin
     y = f.outputs[1].value
@@ -20,26 +20,44 @@ end
 Base.tanh(x) = Tanh()(x)
 
 # Reshape
-@create_func Reshape shape::Tuple x_shape::Tuple
+@createfunc Reshape shape::Tuple
 forward(f::Reshape, x) = begin
     f.x_shape = size(x)
     return reshape(x, f.shape)
 end
 backward(f::Reshape, gy) = reshape(gy, f.x_shape)
 Base.reshape(x::Variable, shape::Tuple) = begin
-    if size(x) == shape return asVariable(x) end
-    return Reshape(shape, ())(x)
+    if size(x) == shape return asvariable(x) end
+    return Reshape(shape)(x)
 end
 Base.reshape(x::Variable, shape::Integer...) = reshape(x, shape)
 
 # Transpose
-@create_func Transpose
+@createfunc Transpose
 forward(f::Transpose, x) = transpose(x)
 backward(f::Transpose, gy) = transpose(gy)
 Base.transpose(x::Variable) = Transpose()(x)
 
 # Adjoint
-@create_func Adjoint
+@createfunc Adjoint
 forward(f::Adjoint, x) = adjoint(x)
-backward(f::Adjoint, gy) = adjoint(gy)
+backward(f::Adjoint, gy) = adjoint(gy) # ???
 Base.adjoint(x::Variable) = Adjoint()(x)
+
+# BroadcastTo
+@createfunc BroadcastTo shape::Tuple
+forward(f::BroadcastTo, x) = begin
+    f.x_shape = size(x)
+    fill(x, f.shape)
+end
+backward(f::BroadcastTo, gy) = sumto(gy, f.x_shape)
+broadcastto(x::Variable, shape) = if size(x) == shape asvariable(x) else BroadcastTo(shape)(x) end
+
+# SumTo
+@createfunc SumTo shape::Tuple
+forward(f::SumTo, x) = begin
+    f.x_shape = size(x)
+    return sum(x, shape)
+end
+backward(f::SumTo, gy) = broadcastto(gy, f.x_shape)
+sumto(x::Variable, shape) = if size(x) == shape asvariable(x) else SumTo(shape)(x) end
