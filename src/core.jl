@@ -42,7 +42,7 @@ function backward!(v::Variable; retain_grad=false, create_graph=false)
         v.grad = Variable(ones(size(v.data)))
     end
 
-    funcs::Vector{Func} = []
+    funcs = Func[]
     seen_set = Set()
     addfunc(f) = begin
         if f ∉ seen_set
@@ -79,7 +79,7 @@ macro createfunc(name, arg...)
             $(arg...)
             inputs::Array{Variable}
             outputs::Array{WeakRef}
-            x_shape::Vector{Tuple}
+            x_shape::Tuple
             generation::Int
             $(esc(name))($(arg...)) = new($(arg...))
         end
@@ -90,7 +90,7 @@ macro funcfield()
     return quote
         $(esc(:inputs))::Array{Variable}
         $(esc(:outputs))::Array{WeakRef}
-        $(esc(:x_shape))::Vector{Tuple}
+        $(esc(:x_shape))::x_shape::Tuple
         $(esc(:generation))::Int
     end
 end

@@ -30,7 +30,13 @@ Base.reshape(x::Variable, shape::Tuple) = begin
     if size(x) == shape return asvariable(x) end
     return Reshape(shape)(x)
 end
-Base.reshape(x::Variable, shape::Integer...) = reshape(x, shape)
+Base.reshape(x::Variable, shape...) = begin
+    if size(x) == shape return x end
+    if length(shape) == 1 && shape[1] isa Union{Tuple,Array}
+        shape = shape[1]
+    end
+    return Reshape(tuple(shape...))(x)
+end
 
 # Transpose
 @createfunc Transpose
@@ -44,6 +50,7 @@ forward(f::Adjoint, x) = adjoint(x)
 backward(f::Adjoint, gy) = adjoint(gy) # ???
 Base.adjoint(x::Variable) = Adjoint()(x)
 
+# Sum
 @createfunc Sum axis::Int keepdims::Bool
 forward(f::Sum, x) = begin
     f.x_shape = size(x)
@@ -51,17 +58,14 @@ forward(f::Sum, x) = begin
     f.keepdims && reshape!(y, ndims(x))
     return y
 end
-backward(f::Sum, gy) = begin
-    gy = reshape_sum_backward!(gy, f.x_shape, f.axis, f.keepdims)
-    gx = broadcastto(gy, f.x_shape)
-    return gx
-end
+backward(f::Sum, gy) =  broadcastto(gy, f.x_shape)
+Base.sum(x::Variable, axis=1, keepdims=false) = Sum(axis, keepdims)(x)
 
 # BroadcastTo
 @createfunc BroadcastTo shape::Tuple
 forward(f::BroadcastTo, x) = begin
     f.x_shape = size(x)
-    fill(x, f.shape)
+    return x .+ zeros(f.shape)
 end
 backward(f::BroadcastTo, gy) = sumto(gy, f.x_shape)
 broadcastto(x::Variable, shape) = if size(x) == shape asvariable(x) else BroadcastTo(shape)(x) end
@@ -69,8 +73,7 @@ broadcastto(x::Variable, shape) = if size(x) == shape asvariable(x) else Broadca
 # SumTo
 @createfunc SumTo shape::Tuple
 forward(f::SumTo, x) = begin
-    f.x_shape = size(x)
-    return sum(x, shape)
+    @error "not implemented."
 end
 backward(f::SumTo, gy) = broadcastto(gy, f.x_shape)
 sumto(x::Variable, shape) = if size(x) == shape asvariable(x) else SumTo(shape)(x) end

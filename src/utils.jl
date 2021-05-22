@@ -6,7 +6,6 @@ function numericalgrad(f::Function, x, args...; eps=1e-4)
     return (y2.data .- y1.data) / (2 * eps)
 end
 
-
 function _dot_var(v::Variable, verbose=false)
     name = isnothing(v.name) ? "" : v.name
     if verbose && isdatadefined(v)
@@ -63,15 +62,4 @@ function plot_dot_graph(output; verbose=false, file="graph.png")
     extension = split(file, ".")[end]
     cmd = `dot $graph_path -T $extension -o $file`
     run(cmd)
-end
-
-function reshape_sum_backward!(gy, x_shape, axis, keepdims)
-    ndims = length(x_shape)
-    tupled_axis = axis
-    if axis isa Nothing
-        tupled_axis = nothing
-    elseif !(axis isa Tuple)
-        tupled_axis = (axis)
-    end
-    
 end
