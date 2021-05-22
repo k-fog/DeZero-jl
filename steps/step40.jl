@@ -7,7 +7,7 @@ function main()
     @show broadcastto(x, (3, 2))
 
     x = Variable([1 2 3; 4 5 6;])
-   @show sumto(x, (3, 1))
+   @show sumto(x, (1, 3))
 end
 
 @time main()

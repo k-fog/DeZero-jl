@@ -18,6 +18,7 @@ end
 
 Base.show(io::IO, v::Variable) = println(io, "Variable(", v.data, ")")
 Base.size(v::Variable) = size(v.data)
+Base.ndims(v::Variable) = ndims(v.data)
 Base.length(v::Variable) = length(v.data)
 Base.eltype(v::Variable) = Variable
 Base.getindex(v::Variable, args...) = getindex(v.data, args...)
