@@ -24,7 +24,7 @@ export
     # functions
     sin, cos,
     transpose, adjoint,
-    broadcastto, sumto,
+    sum, broadcastto, sumto,
 
     # utils
     numericalgrad,
