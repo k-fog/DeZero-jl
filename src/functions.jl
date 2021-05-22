@@ -53,12 +53,12 @@ Base.adjoint(x::Variable) = Adjoint()(x)
 # Sum
 @createfunc Sum axis::Union{Int,Tuple,Nothing} keepdims::Bool
 forward(f::Sum, x) = begin
-    f.x_shape = size(x)
+f.x_shape = size(x)
     if f.axis isa Nothing
         y = sum(x)
     else
         y = sum(x, dims=f.axis)
-    end
+end
     if f.keepdims
         x_dims = length(f.x_shape)
         y_dims = ndims(y)
@@ -92,3 +92,17 @@ forward(f::SumTo, x) = begin
 end
 backward(f::SumTo, gy) = broadcastto(gy, f.x_shape)
 sumto(x::Variable, shape) = if size(x) == shape x else SumTo(shape)(x) end
+
+# MatNul
+@createfunc MatMul
+forward(f::MatMul, W, x) = W * x
+backward(f::MatMul, gy) = begin
+    W, x = f.inputs
+    gW = matmul(gy, transpose(x))
+    gx = matmul(transpose(W), gy)
+    return gW, gx
+end
+matmul(W, x) = MatMul()(W, x)
+Base.:*(A::Variable, B::Variable) = matmul(A, B)
+Base.:*(A::Variable, B) = matmul(A, B)
+Base.:*(A, B::Variable) = matmul(A, B)

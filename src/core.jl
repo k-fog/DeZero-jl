@@ -136,7 +136,7 @@ Base.:+(x, y::Variable) = add(x, y)
 @createfunc Mul
 forward(f::Mul, x1, x2) = x1 .* x2
 backward(f::Mul, gy) = begin
-    x1, gx2 = f.inputs
+    x1, x2 = f.inputs
     gx1 = gy * x2
     gx2 = gy * x1
     if f.x_shape[1] != f.x_shape[2]
@@ -146,9 +146,9 @@ backward(f::Mul, gy) = begin
     return gx1, gx2
 end
 mul(x1, x2) = Mul()(x1, x2)
-Base.:*(x::Variable, y::Variable) = mul(x, y)
-Base.:*(x::Variable, y) = mul(x, y)
-Base.:*(x, y::Variable) = mul(x, y)
+Base.Broadcast.broadcasted(::typeof(*), x::Variable, y::Variable) = mul(x, y)
+Base.Broadcast.broadcasted(::typeof(*), x::Variable, y) = mul(x, y)
+Base.Broadcast.broadcasted(::typeof(*), x, y::Variable) = mul(x, y)
 
 # Neg
 @createfunc Neg
