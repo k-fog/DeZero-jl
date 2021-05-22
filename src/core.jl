@@ -110,6 +110,7 @@ function (f::Func)(inputs...)
             setcreator!(output, f)
         end
     end
+    f.x_shape = tuple(size.(inputs)...)
     f.inputs = inputs
     f.outputs = [WeakRef(output) for output in outputs]
     return length(outputs) > 1 ? outputs : outputs[1]
@@ -118,7 +119,14 @@ end
 # Add
 @createfunc Add
 forward(f::Add, x1, x2) = x1 .+ x2
-backward(f::Add, gy) = gy, gy
+backward(f::Add, gy) = begin
+    gx1, gx2 = gy, gy
+    if f.x_shape[1] != f.x_shape[2]
+        gx1 = sumto(gx1, f.x_shape[1])
+        gx2 = sumto(gx2, f.x_shape[2])
+    end
+    return gx1, gx2
+end
 add(x1, x2) = Add()(x1, x2)
 Base.:+(x::Variable, y::Variable) = add(x, y)
 Base.:+(x::Variable, y) = add(x, y)
@@ -127,7 +135,16 @@ Base.:+(x, y::Variable) = add(x, y)
 # Mul
 @createfunc Mul
 forward(f::Mul, x1, x2) = x1 .* x2
-backward(f::Mul, gy) = (gy * f.inputs[2], gy * f.inputs[1])
+backward(f::Mul, gy) = begin
+    x1, gx2 = f.inputs
+    gx1 = gy * x2
+    gx2 = gy * x1
+    if f.x_shape[1] != f.x_shape[2]
+        gx1 = sumto(gx1, f.x_shape[1])
+        gx2 = sumto(gx2, f.x_shape[2])
+    end
+    return gx1, gx2
+end
 mul(x1, x2) = Mul()(x1, x2)
 Base.:*(x::Variable, y::Variable) = mul(x, y)
 Base.:*(x::Variable, y) = mul(x, y)
@@ -143,7 +160,14 @@ Base.:-(x::Variable) = neg(x)
 # Sub
 @createfunc Sub
 forward(f::Sub, x1, x2) = x1 .- x2
-backward(f::Sub, gy) = (gy, -gy)
+backward(f::Sub, gy) = begin
+    gx1, gx2 = gy, -gy
+    if f.x_shape[1] != f.x_shape[2]
+        gx1 = sumto(gx1, f.x_shape[1])
+        gx2 = sumto(gx2, f.x_shape[2])
+    end
+    return gx1, gx2
+end
 sub(x1, x2) = Sub()(x1, x2)
 Base.:-(x::Variable, y::Variable) = sub(x, y)
 Base.:-(x::Variable, y) = sub(x, y)
@@ -155,8 +179,12 @@ forward(f::Div, x1, x2) = x1 ./ x2
 backward(f::Div, gy) = begin
     x1, x2 = f.inputs
     gx1 = gy / x2
-gx2 = gy * (-x1 / x2^2)
-return gx1, gx2
+    gx2 = gy * (-x1 / x2^2)
+    if f.x_shape[1] != f.x_shape[2]
+        gx1 = sumto(gx1, f.x_shape[1])
+        gx2 = sumto(gx2, f.x_shape[2])
+    end
+    return gx1, gx2
 end
 div(x1, x2) = Div()(x1, x2)
 Base.:/(x::Variable, y::Variable) = div(x, y)

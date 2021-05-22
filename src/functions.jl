@@ -91,4 +91,4 @@ forward(f::SumTo, x) = begin
     return y
 end
 backward(f::SumTo, gy) = broadcastto(gy, f.x_shape)
-sumto(x::Variable, shape) = if size(x) == shape asvariable(x) else SumTo(shape)(x) end
+sumto(x::Variable, shape) = if size(x) == shape x else SumTo(shape)(x) end
