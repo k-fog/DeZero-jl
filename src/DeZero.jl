@@ -20,8 +20,10 @@ export
     neg, sub, -,
     div, /, 
     pow, ^,
-    sin, cos,
-    transpose, adjoint,
+
+    # functions
+    broadcastto,
+    sumto,
 
     # utils
     numericalgrad,

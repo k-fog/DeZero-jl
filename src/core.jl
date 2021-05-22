@@ -42,7 +42,7 @@ function backward!(v::Variable; retain_grad=false, create_graph=false)
         v.grad = Variable(ones(size(v.data)))
     end
 
-    funcs::Vector{Func} = []
+    funcs = Func[]
     seen_set = Set()
     addfunc(f) = begin
         if f ∉ seen_set

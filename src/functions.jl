@@ -44,10 +44,21 @@ forward(f::Adjoint, x) = adjoint(x)
 backward(f::Adjoint, gy) = adjoint(gy) # ???
 Base.adjoint(x::Variable) = Adjoint()(x)
 
+# Sum
+@createfunc Sum dims::Int keepdims::Bool
+forward(f::Sum, x) = begin
+    f.x_shape = [size(x)]
+    return sum(x, dims=f.dims)
+end
+backward(f::Sum, gy) = begin
+    return gy * ones(f.x_shape[1])
+end
+Base.sum(x::Variable; dims=1, keepdims=false) = Sum(dims, keepdims)(x)
+
 # BroadcastTo
 @createfunc BroadcastTo shape::Tuple
 forward(f::BroadcastTo, x) = begin
-    f.x_shape = size(x)
+    f.x_shape = [size(x)]
     fill(x, f.shape)
 end
 backward(f::BroadcastTo, gy) = sumto(gy, f.x_shape)
@@ -56,8 +67,8 @@ broadcastto(x::Variable, shape) = if size(x) == shape asvariable(x) else Broadca
 # SumTo
 @createfunc SumTo shape::Tuple
 forward(f::SumTo, x) = begin
-    f.x_shape = size(x)
-    return sum(x, shape)
+    f.x_shape = [size(x)]
+    return sum(x, dims=2)
 end
 backward(f::SumTo, gy) = broadcastto(gy, f.x_shape)
 sumto(x::Variable, shape) = if size(x) == shape asvariable(x) else SumTo(shape)(x) end

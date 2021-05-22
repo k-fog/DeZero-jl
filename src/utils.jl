@@ -6,7 +6,6 @@ function numericalgrad(f::Function, x, args...; eps=1e-4)
     return (y2.data .- y1.data) / (2 * eps)
 end
 
-
 function _dot_var(v::Variable, verbose=false)
     name = isnothing(v.name) ? "" : v.name
     if verbose && isdatadefined(v)
