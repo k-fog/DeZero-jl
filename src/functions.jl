@@ -44,6 +44,19 @@ forward(f::Adjoint, x) = adjoint(x)
 backward(f::Adjoint, gy) = adjoint(gy) # ???
 Base.adjoint(x::Variable) = Adjoint()(x)
 
+@createfunc Sum axis::Int keepdims::Bool
+forward(f::Sum, x) = begin
+    f.x_shape = size(x)
+    y = sum(x, dims=f.axis)
+    f.keepdims && reshape!(y, ndims(x))
+    return y
+end
+backward(f::Sum, gy) = begin
+    gy = reshape_sum_backward!(gy, f.x_shape, f.axis, f.keepdims)
+    gx = broadcastto(gy, f.x_shape)
+    return gx
+end
+
 # BroadcastTo
 @createfunc BroadcastTo shape::Tuple
 forward(f::BroadcastTo, x) = begin

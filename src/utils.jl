@@ -64,3 +64,14 @@ function plot_dot_graph(output; verbose=false, file="graph.png")
     cmd = `dot $graph_path -T $extension -o $file`
     run(cmd)
 end
+
+function reshape_sum_backward!(gy, x_shape, axis, keepdims)
+    ndims = length(x_shape)
+    tupled_axis = axis
+    if axis isa Nothing
+        tupled_axis = nothing
+    elseif !(axis isa Tuple)
+        tupled_axis = (axis)
+    end
+    
+end
