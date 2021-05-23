@@ -63,3 +63,15 @@ function plot_dot_graph(output; verbose=false, file="graph.png")
     cmd = `dot $graph_path -T $extension -o $file`
     run(cmd)
 end
+
+function sumto(x::AbstractArray, shape)
+    size(x) == shape && return x
+    lead = ndims(x) - length(shape)
+    dims = Tuple(1:lead)
+    for i = 1:(ndims(x) - lead)
+        if shape[i] == 1 && size(x, i) > 1
+            dims = tuple(dims..., i)
+        end
+    end
+    return sum(x, dims=dims)
+end

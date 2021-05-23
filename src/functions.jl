@@ -36,7 +36,7 @@ Base.reshape(x::Variable, shape...) = begin
         shape = shape[1]
     end
     return Reshape(tuple(shape...))(x)
-        end
+end
 
 # Transpose
 @createfunc Transpose
@@ -59,7 +59,7 @@ f.x_shape = size(x)
     else
         y = sum(x, dims=f.axis)
 end
-    if f.keepdims
+if f.keepdims
         x_dims = length(f.x_shape)
         y_dims = ndims(y)
         if y isa Number y = [y] end
@@ -81,15 +81,7 @@ broadcastto(x::Variable, shape) = if size(x) == shape asvariable(x) else Broadca
 
 # SumTo
 @createfunc SumTo shape::Tuple
-forward(f::SumTo, x) = begin
-    ndim = length(f.shape)
-    lead = ndims(x) - ndim
-    lead_axis = tuple(0:lead...)
-    axis = tuple([i + lead for (i, sx) in enumerate(f.shape) if sx == 1]...)
-    y = sum(x, dims=lead_axis .+ axis)
-    lead > 0 && squeeze!(y, lead_axis)
-    return y
-end
+forward(f::SumTo, x) = sumto(x, f.shape)
 backward(f::SumTo, gy) = broadcastto(gy, f.x_shape)
 sumto(x::Variable, shape) = if size(x) == shape x else SumTo(shape)(x) end
 

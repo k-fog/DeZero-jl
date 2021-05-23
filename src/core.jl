@@ -65,7 +65,7 @@ function backward!(v::Variable; retain_grad=false, create_graph=false)
                 if isgraddefined(x)
                     x.grad = x.grad + gx
                 else
-                x.grad = gx
+                    x.grad = gx
                 end
                 isdefined(x, :creator) && addfunc(x.creator)
             end
@@ -103,14 +103,14 @@ function (f::Func)(inputs...)
     if !(ys isa Tuple)
         ys = (ys,)
     end
-    outputs = [Variable(y) for y in ys]
+    outputs = [asvariable(y) for y in ys]
     if Config.enable_backprop[]
         f.generation = maximum([x.generation for x in inputs])
         for output in outputs
             setcreator!(output, f)
         end
     end
-    f.x_shape = tuple(size.(inputs)...)
+    f.x_shape = length(inputs) == 1 ? size(inputs) : tuple(size.(inputs)...)
     f.inputs = inputs
     f.outputs = [WeakRef(output) for output in outputs]
     return length(outputs) > 1 ? outputs : outputs[1]
@@ -137,8 +137,8 @@ Base.:+(x, y::Variable) = add(x, y)
 forward(f::Mul, x1, x2) = x1 .* x2
 backward(f::Mul, gy) = begin
     x1, x2 = f.inputs
-    gx1 = gy * x2
-    gx2 = gy * x1
+    gx1 = gy .* x2
+    gx2 = gy .* x1
     if f.x_shape[1] != f.x_shape[2]
         gx1 = sumto(gx1, f.x_shape[1])
         gx2 = sumto(gx2, f.x_shape[2])
@@ -179,7 +179,7 @@ forward(f::Div, x1, x2) = x1 ./ x2
 backward(f::Div, gy) = begin
     x1, x2 = f.inputs
     gx1 = gy / x2
-    gx2 = gy * (-x1 / x2^2)
+    gx2 = gy .* (-x1 / x2^2)
     if f.x_shape[1] != f.x_shape[2]
         gx1 = sumto(gx1, f.x_shape[1])
         gx2 = sumto(gx2, f.x_shape[2])
@@ -194,6 +194,6 @@ Base.:/(x, y::Variable) = div(x, y)
 # Pow
 @createfunc Pow c::Real
 forward(f::Pow, x) = x.^f.c
-backward(f::Pow, gy) = f.c * f.inputs[1]^(f.c - 1) * gy
+backward(f::Pow, gy) = f.c .* f.inputs[1]^(f.c - 1) .* gy
 pow(x, c) = Pow(c)(x)
 Base.:^(x::Variable, c) = pow(x, c)
